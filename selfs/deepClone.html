@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 如何克隆一个函数
+      function cloneFunction(func) {
+        // 将函数转换成字符串
+        const funcString = func.toString()
+
+        // 创建一个新的函数
+        const clonedFunc = new Function(`return ${funcString}`)()
+
+        // 如果函数存在作用域链，复制作用域链
+        if (func.prototype) {
+          clonedFunc.prototype = Object.create(func.prototype)
+        }
+
+        return clonedFunc
+      }
+
+      function deepClone(obj) {
+        const hash = new WeakMap()
+        const isObject = (obj) =>
+          obj !== null && (typeof obj === 'object' || typeof obj === 'function')
+        const isArray = (obj) => Array.isArray(obj)
+        const getType = (obj) => Object.prototype.toString.call(obj)
+        const isDate = (obj) => getType(obj) === '[object Date]'
+        const isRegExp = (obj) => getType(obj) === '[object RegExp]'
+
+        if (!isObject(obj)) {
+          return obj
+        }
+
+        // 考虑循环引用
+        if (hash.has(obj)) {
+          return hash.get(obj)
+        }
+
+        let cloneObj = isArray(obj) ? [] : {}
+        hash.set(obj, cloneObj)
+
+        // 考虑日期
+        if (isDate(obj)) {
+          cloneObj = new Date(obj.getTime())
+          return cloneObj
+        }
+
+        // 考虑正则
+        if (isRegExp(obj)) {
+          cloneObj = new RegExp(obj.source, obj.flags)
+          return cloneObj
+        }
+
+        for (let key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            cloneObj[key] = isObject(obj[key])
+              ? deepClone(obj[key], hash)
+              : obj[key]
+          }
+        }
+
+        return cloneObj
+      }
+    </script>
+  </body>
+</html>
